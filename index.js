@@ -15,10 +15,11 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('dist'));
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
   Person.find({}).then((persons) => {
     res.json(persons);
   })
+  .catch((error) => next(error))
 })
 
 app.get('/info', (req, res) => {
