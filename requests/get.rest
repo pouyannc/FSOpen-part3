@@ -5,3 +5,9 @@ GET http://localhost:3001/api/persons
 
 ###
 GET http://localhost:3001/api/person
+
+###
+GET http://localhost:3001/api/persons/wrongid
+
+###
+GET http://localhost:3001/api/persons/64e9234b7f1cec53f3262a07

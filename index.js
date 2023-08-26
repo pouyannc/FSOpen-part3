@@ -28,11 +28,12 @@ app.get('/info', (req, res) => {
   res.send(`<p>Phonebook has info for ${bookLength} people</p><p>${date}</p>`);
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === id);
-  console.log(person)
-  person ? res.json(person) : res.status(404).json({status: '404 resource does not exist'});
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      res.json(person);
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -47,15 +48,22 @@ app.post('/api/persons', (req, res) => {
   const newPerson = req.body;
 
   if (!newPerson.name || !newPerson.number) res.status(400).json({status: "name and/or number missing"});
-  // else if (persons.find((p) => p.name.toLowerCase() === newPerson.name.toLowerCase())) {
-  //   res.status(400).json({status: "name already exists"});
-  // } 
   else {
     const newEntry = new Person(newPerson);
     newEntry.save().then((savedEntry) => {
       res.json(savedEntry);
     })
   }
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const person = req.body;
+
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedEntry) => {
+      res.json(updatedEntry)
+    })
+    .catch(error => next(error))
 })
 
 const routeNotFound = (req, res) => {
