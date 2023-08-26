@@ -1,12 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const Person = require('./models/person');
 
 const app = express();
-console.log(process.argv)
-const password = process.argv[2];
-const mongoUrl = `mongodb+srv://pouyan:${password}@cluster0.rlbecqk.mongodb.net/phonebook`;
 
 morgan.token('body', (req, res) => {
   return JSON.stringify(req.body);
@@ -16,45 +14,6 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 app.use(express.json());
 app.use(cors());
 app.use(express.static('dist'));
-
-// let persons = [
-//   { 
-//     "id": 1,
-//     "name": "Arto Hellas", 
-//     "number": "040-123456"
-//   },
-//   { 
-//     "id": 2,
-//     "name": "Ada Lovelace", 
-//     "number": "39-44-5323523"
-//   },
-//   { 
-//     "id": 3,
-//     "name": "Dan Abramov", 
-//     "number": "12-43-234345"
-//   },
-//   { 
-//     "id": 4,
-//     "name": "Mary Poppendieck", 
-//     "number": "39-23-6423122"
-//   }
-// ];
-
-mongoose.connect(mongoUrl);
-mongoose.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-  }
-})
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-});
-
-const Person = mongoose.model('Person', personSchema);
 
 app.get('/api/persons', (req, res) => {
   Person.find({}).then((persons) => {
@@ -84,20 +43,17 @@ app.delete('/api/persons/:id', (req, res) => {
 })
 
 app.post('/api/persons', (req, res) => {
-  let newPerson = req.body;
+  const newPerson = req.body;
 
   if (!newPerson.name || !newPerson.number) res.status(400).json({status: "name and/or number missing"});
-  else if (persons.find((p) => p.name.toLowerCase() === newPerson.name.toLowerCase())) {
-    res.status(400).json({status: "name already exists"});
-  } else {
-    const id = Math.floor(Math.random * 10000);
-    newPerson = {
-      id,
-      name: newPerson.name,
-      number: newPerson.number,
-    }
-    persons.concat(newPerson);
-    res.json(newPerson);
+  // else if (persons.find((p) => p.name.toLowerCase() === newPerson.name.toLowerCase())) {
+  //   res.status(400).json({status: "name already exists"});
+  // } 
+  else {
+    const newEntry = new Person(newPerson);
+    newEntry.save().then((savedEntry) => {
+      res.json(savedEntry);
+    })
   }
 })
 
