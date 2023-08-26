@@ -35,11 +35,12 @@ app.get('/api/persons/:id', (req, res) => {
   person ? res.json(person) : res.status(404).json({status: '404 resource does not exist'});
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((p) => p.id !== id);
-
-  res.status(204).end();
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then(result => {
+      res.status(204).end();
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -56,6 +57,27 @@ app.post('/api/persons', (req, res) => {
     })
   }
 })
+
+const routeNotFound = (req, res) => {
+  console.log('invalid route');
+
+  res.status(404).json({status: 'Route not found'});
+}
+
+app.use(routeNotFound);
+
+const errorHandler = (error, req, res, next) => {
+  console.log(`reached error handler with error ${error.name}`);
+  console.log(error.message);
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error);
+}
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {console.log(`listening on port ${PORT}`);})

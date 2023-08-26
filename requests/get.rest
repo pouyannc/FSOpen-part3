@@ -2,3 +2,6 @@ GET https://phonebook-back-2pkx.onrender.com/api/persons
 
 ###
 GET http://localhost:3001/api/persons
+
+###
+GET http://localhost:3001/api/person
