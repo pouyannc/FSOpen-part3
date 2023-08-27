@@ -6,9 +6,7 @@ const Person = require('./models/person');
 
 const app = express();
 
-morgan.token('body', (req, res) => {
-  return JSON.stringify(req.body);
-})
+morgan.token('body', (req) => JSON.stringify(req.body));
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 app.use(express.json());
@@ -19,74 +17,67 @@ app.get('/api/persons', (req, res, next) => {
   Person.find({}).then((persons) => {
     res.json(persons);
   })
-  .catch((error) => next(error))
-})
-
-app.get('/info', (req, res) => {
-  const date = new Date();
-  const bookLength = persons.length;
-
-  res.send(`<p>Phonebook has info for ${bookLength} people</p><p>${date}</p>`);
-})
+    .catch((error) => next(error));
+});
 
 app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
-    .then(person => {
+    .then((person) => {
       res.json(person);
     })
-    .catch(error => next(error))
-})
+    .catch((error) => next(error));
+});
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end();
     })
-    .catch(error => next(error))
-})
+    .catch((error) => next(error));
+});
 
 app.post('/api/persons', (req, res, next) => {
   const newPerson = req.body;
-    const newEntry = new Person(newPerson);
-    newEntry.save().then((savedEntry) => {
-      res.json(savedEntry);
-    })
-    .catch(error => next(error))
-  }
-)
+  const newEntry = new Person(newPerson);
+  newEntry.save().then((savedEntry) => {
+    res.json(savedEntry);
+  })
+    .catch((error) => next(error));
+});
 
 app.put('/api/persons/:id', (req, res, next) => {
   const person = req.body;
 
   Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true })
     .then((updatedEntry) => {
-      res.json(updatedEntry)
+      res.json(updatedEntry);
     })
-    .catch(error => next(error))
-})
+    .catch((error) => next(error));
+});
 
 const routeNotFound = (req, res) => {
   console.log('invalid route');
 
-  res.status(404).json({status: 'Route not found'});
-}
+  res.status(404).json({ status: 'Route not found' });
+};
 
 app.use(routeNotFound);
 
 const errorHandler = (error, req, res, next) => {
   console.log(`reached error handler with error ${error.name}`);
-  console.log(error.message)
+  console.log(error.message);
 
   if (error.name === 'CastError') {
-    return res.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'ValidationError') {
-    return res.status(400).send(error.message)
+    return res.status(400).send({ error: 'malformatted id' });
+  }
+  if (error.name === 'ValidationError') {
+    return res.status(400).send(error.message);
   }
 
-  next(error);
-}
+  return next(error);
+};
 
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {console.log(`listening on port ${PORT}`);})
+app.listen(PORT, () => { console.log(`listening on port ${PORT}`); });
