@@ -45,17 +45,15 @@ app.delete('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const newPerson = req.body;
-
-  if (!newPerson.name || !newPerson.number) res.status(400).json({status: "name and/or number missing"});
-  else {
     const newEntry = new Person(newPerson);
     newEntry.save().then((savedEntry) => {
       res.json(savedEntry);
     })
+    .catch(error => next(error))
   }
-})
+)
 
 app.put('/api/persons/:id', (req, res, next) => {
   const person = req.body;
@@ -81,6 +79,9 @@ const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    console.log(error)
+    return res.status(400).send('Name must be at least 3 characters long')
   }
 
   next(error);
